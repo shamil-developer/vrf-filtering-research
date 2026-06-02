@@ -1,0 +1,137 @@
+steps:
+
+  - type: create_namespace
+    request:
+      name: lab
+
+  - type: create_namespace
+    request:
+      namespace: lab
+      name: ns-client
+
+  - type: create_namespace
+    request:
+      namespace: lab
+      name: ns-server
+
+  - type: create_interface
+    request:
+      namespace: lab
+      kind: bridge
+      name: br0
+
+  - type: create_interface
+    request:
+      namespace: lab
+      kind: vrf
+      name: vrf-blue
+      table: 100
+
+  - type: create_interface
+    request:
+      namespace: lab
+      kind: veth
+      left: veth-client
+      right: veth-client-peer
+
+  - type: create_interface
+    request:
+      namespace: lab
+      kind: veth
+      left: veth-br-vrf
+      right: veth-br-vrf-peer
+
+  - type: create_interface
+    request:
+      namespace: lab
+      kind: veth
+      left: veth-vrf-server
+      right: veth-vrf-server-peer
+
+  - type: move_interface
+    request:
+      namespace: lab
+      interface: veth-client-peer
+      target_namespace: lab/ns-client
+
+  - type: move_interface
+    request:
+      namespace: lab
+      interface: veth-vrf-server-peer
+      target_namespace: lab/ns-server
+
+  - type: attach_interface
+    request:
+      namespace: lab
+      parent: br0
+      child: veth-client
+
+  - type: attach_interface
+    request:
+      namespace: lab
+      parent: br0
+      child: veth-br-vrf
+
+  - type: attach_interface
+    request:
+      namespace: lab
+      parent: vrf-blue
+      child: veth-br-vrf-peer
+
+  - type: attach_interface
+    request:
+      namespace: lab
+      parent: vrf-blue
+      child: veth-vrf-server
+
+  - type: assign_ip
+    request:
+      namespace: lab/ns-client
+      interface: veth-client-peer
+      address: 10.0.0.1/24
+
+  - type: assign_ip
+    request:
+      namespace: lab/ns-server
+      interface: veth-vrf-server-peer
+      address: 10.0.0.2/24
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: br0
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: vrf-blue
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: veth-client
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: veth-br-vrf
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: veth-br-vrf-peer
+
+  - type: interface_up
+    request:
+      namespace: lab
+      interface: veth-vrf-server
+
+  - type: interface_up
+    request:
+      namespace: lab/ns-client
+      interface: veth-client-peer
+
+  - type: interface_up
+    request:
+      namespace: lab/ns-server
+      interface: veth-vrf-server-peer
