@@ -28,7 +28,7 @@ func (h *Print) Handle(
 		)
 	}
 
-	fmt.Println(message)
+	logger(tools).Info(message)
 
 	return nil
 }

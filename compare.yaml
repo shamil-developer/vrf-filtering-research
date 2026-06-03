@@ -1,0 +1,5 @@
+steps:
+  - type: compare_reports
+    request:
+      left: reports/nft.json
+      right: reports/tc_ebpf.json

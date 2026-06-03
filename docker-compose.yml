@@ -1,0 +1,24 @@
+services:
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: go run ./cmd/lab
+
+  ubuntu:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+    privileged: true
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: /bin/bash

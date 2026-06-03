@@ -6,13 +6,13 @@ import (
 	"github.com/shamil-developer/vrf-filtering-research/internal/chain"
 )
 
-type CreateNamespace struct{}
+type SetSysctl struct{}
 
-func NewCreateNamespace() *CreateNamespace {
-	return &CreateNamespace{}
+func NewSetSysctl() *SetSysctl {
+	return &SetSysctl{}
 }
 
-func (h *CreateNamespace) Handle(
+func (h *SetSysctl) Handle(
 	ctx context.Context,
 	tools *chain.Tools,
 	request map[string]any,
@@ -29,11 +29,18 @@ func (h *CreateNamespace) Handle(
 		return err
 	}
 
+	value, err := requiredString(request, "value")
+	if err != nil {
+		return err
+	}
+
 	log.Info(
-		"Создаю network namespace",
-		"имя",
+		"Настраиваю sysctl",
+		"параметр",
 		name,
+		"значение",
+		value,
 	)
 
-	return net.CreateNamespace(name)
+	return net.SetSysctl(name, value)
 }

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shamil-developer/vrf-filtering-research/internal/chain"
 )
@@ -18,17 +17,34 @@ func (h *AttachInterface) Handle(
 	tools *chain.Tools,
 	request map[string]any,
 ) error {
+	log := logger(tools)
 
-	namespace := request["namespace"].(string)
-	parent := request["parent"].(string)
-	child := request["child"].(string)
+	net, err := networkTool(tools)
+	if err != nil {
+		return err
+	}
 
-	fmt.Printf(
-		"attach_interface namespace=%s parent=%s child=%s\n",
-		namespace,
+	namespace := optionalString(request, "namespace")
+
+	parent, err := requiredString(request, "parent")
+	if err != nil {
+		return err
+	}
+
+	child, err := requiredString(request, "child")
+	if err != nil {
+		return err
+	}
+
+	log.Info(
+		"Подключаю интерфейс к master-устройству",
+		"пространство",
+		displayNamespace(namespace),
+		"master",
 		parent,
+		"интерфейс",
 		child,
 	)
 
-	return nil
+	return net.AttachInterface(namespace, parent, child)
 }

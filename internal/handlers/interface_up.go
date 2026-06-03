@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shamil-developer/vrf-filtering-research/internal/chain"
 )
@@ -18,15 +17,27 @@ func (h *InterfaceUp) Handle(
 	tools *chain.Tools,
 	request map[string]any,
 ) error {
+	log := logger(tools)
 
-	namespace := request["namespace"].(string)
-	iface := request["interface"].(string)
+	net, err := networkTool(tools)
+	if err != nil {
+		return err
+	}
 
-	fmt.Printf(
-		"interface_up namespace=%s interface=%s\n",
-		namespace,
+	namespace := optionalString(request, "namespace")
+
+	iface, err := requiredString(request, "interface")
+	if err != nil {
+		return err
+	}
+
+	log.Info(
+		"Поднимаю интерфейс",
+		"пространство",
+		displayNamespace(namespace),
+		"интерфейс",
 		iface,
 	)
 
-	return nil
+	return net.InterfaceUp(namespace, iface)
 }

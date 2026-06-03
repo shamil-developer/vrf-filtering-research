@@ -1,137 +1,169 @@
 steps:
 
-  - type: create_namespace
+  - type: set_sysctl
     request:
-      name: lab
+      name: net.ipv4.ip_forward
+      value: "1"
 
   - type: create_namespace
     request:
-      namespace: lab
       name: ns-client
 
   - type: create_namespace
     request:
-      namespace: lab
       name: ns-server
 
   - type: create_interface
     request:
-      namespace: lab
       kind: bridge
       name: br0
 
   - type: create_interface
     request:
-      namespace: lab
       kind: vrf
       name: vrf-blue
       table: 100
 
   - type: create_interface
     request:
-      namespace: lab
       kind: veth
-      left: veth-client
-      right: veth-client-peer
+      left: veth-c
+      right: veth-c-ns
 
   - type: create_interface
     request:
-      namespace: lab
       kind: veth
-      left: veth-br-vrf
-      right: veth-br-vrf-peer
+      left: veth-b
+      right: veth-vrf
 
   - type: create_interface
     request:
-      namespace: lab
       kind: veth
-      left: veth-vrf-server
-      right: veth-vrf-server-peer
+      left: veth-s
+      right: veth-s-ns
 
   - type: move_interface
     request:
-      namespace: lab
-      interface: veth-client-peer
-      target_namespace: lab/ns-client
+      interface: veth-c-ns
+      target_namespace: ns-client
 
   - type: move_interface
     request:
-      namespace: lab
-      interface: veth-vrf-server-peer
-      target_namespace: lab/ns-server
+      interface: veth-s-ns
+      target_namespace: ns-server
 
   - type: attach_interface
     request:
-      namespace: lab
       parent: br0
-      child: veth-client
+      child: veth-c
 
   - type: attach_interface
     request:
-      namespace: lab
       parent: br0
-      child: veth-br-vrf
+      child: veth-b
 
   - type: attach_interface
     request:
-      namespace: lab
       parent: vrf-blue
-      child: veth-br-vrf-peer
+      child: veth-vrf
 
   - type: attach_interface
     request:
-      namespace: lab
       parent: vrf-blue
-      child: veth-vrf-server
+      child: veth-s
 
   - type: assign_ip
     request:
-      namespace: lab/ns-client
-      interface: veth-client-peer
-      address: 10.0.0.1/24
+      interface: veth-vrf
+      address: 10.0.1.1/24
 
   - type: assign_ip
     request:
-      namespace: lab/ns-server
-      interface: veth-vrf-server-peer
-      address: 10.0.0.2/24
+      interface: veth-s
+      address: 10.0.2.1/24
+
+  - type: assign_ip
+    request:
+      namespace: ns-client
+      interface: veth-c-ns
+      address: 10.0.1.2/24
+
+  - type: assign_ip
+    request:
+      namespace: ns-server
+      interface: veth-s-ns
+      address: 10.0.2.2/24
 
   - type: interface_up
     request:
-      namespace: lab
       interface: br0
 
   - type: interface_up
     request:
-      namespace: lab
       interface: vrf-blue
 
   - type: interface_up
     request:
-      namespace: lab
-      interface: veth-client
+      interface: veth-c
 
   - type: interface_up
     request:
-      namespace: lab
-      interface: veth-br-vrf
+      interface: veth-b
 
   - type: interface_up
     request:
-      namespace: lab
-      interface: veth-br-vrf-peer
+      interface: veth-vrf
 
   - type: interface_up
     request:
-      namespace: lab
-      interface: veth-vrf-server
+      interface: veth-s
 
   - type: interface_up
     request:
-      namespace: lab/ns-client
-      interface: veth-client-peer
+      namespace: ns-client
+      interface: lo
 
   - type: interface_up
     request:
-      namespace: lab/ns-server
-      interface: veth-vrf-server-peer
+      namespace: ns-client
+      interface: veth-c-ns
+
+  - type: interface_up
+    request:
+      namespace: ns-server
+      interface: lo
+
+  - type: interface_up
+    request:
+      namespace: ns-server
+      interface: veth-s-ns
+
+  - type: add_route
+    request:
+      namespace: ns-client
+      dst: default
+      gateway: 10.0.1.1
+      interface: veth-c-ns
+
+  - type: add_route
+    request:
+      namespace: ns-server
+      dst: default
+      gateway: 10.0.2.1
+      interface: veth-s-ns
+
+  - type: benchmark_iperf_series
+    request:
+      name: nft_easy_source_ip
+      engine: nft
+      filter_profiles_path: filters.yaml
+      filter_profile: easy_source_ip
+      client_namespace: ns-client
+      server_namespace: ns-server
+      server_ip: 10.0.2.2
+      port: 5201
+      duration: 10
+      rules_start: 0
+      rules_step: 100
+      rules_max: 1000
+      report_dir: reports

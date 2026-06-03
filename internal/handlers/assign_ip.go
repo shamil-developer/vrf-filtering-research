@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shamil-developer/vrf-filtering-research/internal/chain"
 )
@@ -18,17 +17,34 @@ func (h *AssignIP) Handle(
 	tools *chain.Tools,
 	request map[string]any,
 ) error {
+	log := logger(tools)
 
-	namespace := request["namespace"].(string)
-	iface := request["interface"].(string)
-	address := request["address"].(string)
+	net, err := networkTool(tools)
+	if err != nil {
+		return err
+	}
 
-	fmt.Printf(
-		"assign_ip namespace=%s interface=%s address=%s\n",
-		namespace,
+	namespace := optionalString(request, "namespace")
+
+	iface, err := requiredString(request, "interface")
+	if err != nil {
+		return err
+	}
+
+	address, err := requiredString(request, "address")
+	if err != nil {
+		return err
+	}
+
+	log.Info(
+		"Назначаю IP-адрес",
+		"пространство",
+		displayNamespace(namespace),
+		"интерфейс",
 		iface,
+		"адрес",
 		address,
 	)
 
-	return nil
+	return net.AssignIP(namespace, iface, address)
 }
